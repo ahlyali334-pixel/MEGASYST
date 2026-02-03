@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الروبوت</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d0d2b 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f5ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 30px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff88; }
+            50% { opacity: 0.5; box-shadow: 0 0 20px #00ff88; }
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 245, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 245, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #00f5ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* أزرار التحكم */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #1e1e3f, #2a2a5a);
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(145deg, #00f5ff, #00c4cc);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 245, 255, 0.3);
+        }
+
+        .control-btn.stop {
+            background: linear-gradient(145deg, #ff4757, #c0392b);
+        }
+
+        .control-btn.stop:hover {
+            background: linear-gradient(145deg, #ff6b7a, #e74c3c);
+        }
+
+        .empty-cell {
+            visibility: hidden;
+        }
+
+        /* قراءات المستشعرات */
+        .sensors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .sensor-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sensor-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .sensor-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .sensor-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .sensor-unit {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* شريط السرعة */
+        .speed-control {
+            margin-top: 20px;
+        }
+
+        .speed-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .speed-slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00ff88, #00f5ff);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+        }
+
+        /* سجل الأوامر */
+        .log-container {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-time {
+            color: #00f5ff;
+        }
+
+        .log-message {
+            color: #aaa;
+        }
+
+        /* إعدادات الاتصال */
+        .connection-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #00f5ff;
+        }
+
+        .connect-btn {
+            padding: 12px 30px;
+            background: linear-gradient(90deg, #00f5ff, #00ff88);
+            border: none;
+            border-radius: 10px;
+            color: #0a0a1a;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connect-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 245, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 لوحة تحكم الروبوت</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span id="connection-status">متصل</span>
+            </div>
+        </header>
+
+        <!-- إعدادات الاتصال -->
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-title">⚡ إعدادات الاتصال</div>
+            <div class="connection-form">
+                <input type="text" class="input-field" id="robot-ip" placeholder="عنوان IP الروبوت" value="192.168.1.100">
+                <input type="text" class="input-field" id="robot-port" placeholder="المنفذ" value="8080">
+                <button class="connect-btn" onclick="connectToRobot()">اتصال</button>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- التحكم بالحركة -->
+            <div class="card">
+                <div class="card-title">🎮 التحكم بالحركة</div>
+                <div class="controls-grid">
+                    <div class="empty-cell"></div>
+                    <button class="control-btn" onclick="sendCommand('forward')" title="للأمام">⬆️</button>
+                    <div class="empty-cell"></div>
+                    
+                    <button class="control-btn" onclick="sendCommand('left')" title="يسار">⬅️</button>
+                    <button class="control-btn stop" onclick="sendCommand('stop')" title="توقف">⏹️</button>
+                    <button class="control-btn" onclick="sendCommand('right')" title="يمين">➡️</button>
+                    
+                    <div class="empty-cell"></div>
+                    <button class="control-btn" onclick="sendCommand('backward')" title="للخلف">⬇️</button>
+                    <div class="empty-cell"></div>
+                </div>
+
+                <div class="speed-control">
+                    <div class="speed-label">
+                        <span>السرعة</span>
+                        <span id="speed-value">50%</span>
+                    </div>
+                    <input type="range" class="speed-slider" id="speed-slider" min="0" max="100" value="50" oninput="updateSpeed(this.value)">
+                </div>
+            </div>
+
+            <!-- قراءات المستشعرات -->
+            <div class="card">
+                <div class="card-title">📊 قراءات المستشعرات</div>
+                <div class="sensors-grid">
+                    <div class="sensor-item">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">درجة الحرارة</div>
+                        <div class="sensor-value" id="temp-value">25</div>
+                        <div class="sensor-unit">°C</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon">💧</div>
+                        <div class="sensor-label">الرطوبة</div>
+                        <div class="sensor-value" id="humidity-value">60</div>
+                        <div class="sensor-unit">%</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon">📏</div>
+                        <div class="sensor-label">المسافة</div>
+                        <div class="sensor-value" id="distance-value">45</div>
+                        <div class="sensor-unit">سم</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon">🔋</div>
+                        <div class="sensor-label">البطارية</div>
+                        <div class="sensor-value" id="battery-value">85</div>
+                        <div class="sensor-unit">%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- سجل الأوامر -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-title">📝 سجل الأوامر</div>
+                <div class="log-container" id="log-container">
+                    <div class="log-entry">
+                        <span class="log-time">[12:00:00]</span>
+                        <span class="log-message">تم بدء النظام...</span>
+                    </div>
+                </div>
+                <button class="connect-btn" style="margin-top: 15px; width: 100%;" onclick="printReceipt()">🖨️ طباعة الإيصال</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let robotIP = '192.168.1.100';
+        let robotPort = '8080';
+        let isConnected = false;
+
+        // الاتصال بالروبوت
+        function connectToRobot() {
+            robotIP = document.getElementById('robot-ip').value;
+            robotPort = document.getElementById('robot-port').value;
+            
+            addLog(`جاري الاتصال بـ ${robotIP}:${robotPort}...`);
+            
+            // محاكاة الاتصال
+            setTimeout(() => {
+                isConnected = true;
+                document.getElementById('connection-status').textContent = 'متصل';
+                addLog('تم الاتصال بنجاح!');
+                startSensorUpdates();
+            }, 1000);
+        }
+
+        // إرسال أمر للروبوت
+        function sendCommand(command) {
+            if (!isConnected) {
+                addLog('خطأ: غير متصل بالروبوت!');
+                return;
+            }
+
+            const speed = document.getElementById('speed-slider').value;
+            const commandNames = {
+                'forward': 'تحرك للأمام',
+                'backward': 'تحرك للخلف',
+                'left': 'دوران يسار',
+                'right': 'دوران يمين',
+                'stop': 'توقف'
+            };
+
+            addLog(`أمر: ${commandNames[command]} (السرعة: ${speed}%)`);
+
+            // هنا يمكنك إضافة كود الاتصال الفعلي بالروبوت
+            // مثال باستخدام fetch:
+            /*
+            fetch(`http://${robotIP}:${robotPort}/command`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command, speed })
+            });
+            */
+        }
+
+        // تحديث السرعة
+        function updateSpeed(value) {
+            document.getElementById('speed-value').textContent = value + '%';
+        }
+
+        // إضافة سجل
+        function addLog(message) {
+            const container = document.getElementById('log-container');
+            const time = new Date().toLocaleTimeString('ar-EG');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-message">${message}</span>
+            `;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // تحديث قراءات المستشعرات (محاكاة)
+        function startSensorUpdates() {
+            setInterval(() => {
+                if (!isConnected) return;
+
+                // محاكاة قراءات عشوائية
+                document.getElementById('temp-value').textContent = (20 + Math.random() * 15).toFixed(1);
+                document.getElementById('humidity-value').textContent = (40 + Math.random() * 40).toFixed(0);
+                document.getElementById('distance-value').textContent = (10 + Math.random() * 100).toFixed(0);
+                document.getElementById('battery-value').textContent = Math.max(0, 85 - Math.random() * 2).toFixed(0);
+
+                // هنا يمكنك إضافة كود جلب البيانات الفعلية:
+                /*
+                fetch(`http://${robotIP}:${robotPort}/sensors`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('temp-value').textContent = data.temperature;
+                        document.getElementById('humidity-value').textContent = data.humidity;
+                        document.getElementById('distance-value').textContent = data.distance;
+                        document.getElementById('battery-value').textContent = data.battery;
+                    });
+                */
+            }, 2000);
+        }
+
+        // دعم لوحة المفاتيح
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp': sendCommand('forward'); break;
+                case 'ArrowDown': sendCommand('backward'); break;
+                case 'ArrowLeft': sendCommand('left'); break;
+                case 'ArrowRight': sendCommand('right'); break;
+                case ' ': sendCommand('stop'); e.preventDefault(); break;
+            }
+        });
+
+        // طباعة الإيصال
+        function printReceipt() {
+            const logs = document.querySelectorAll('#log-container .log-entry');
+            const date = new Date().toLocaleDateString('ar-EG');
+            const time = new Date().toLocaleTimeString('ar-EG');
+            
+            let receiptContent = `
+                <html dir="rtl">
+                <head>
+                    <title>إيصال التحكم بالروبوت</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; padding: 20px; max-width: 400px; margin: 0 auto; }
+                        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 15px; margin-bottom: 15px; }
+                        .header h2 { margin: 0; font-size: 18px; }
+                        .info { margin: 10px 0; font-size: 12px; }
+                        .info span { display: block; }
+                        .divider { border-top: 1px dashed #000; margin: 15px 0; }
+                        .log-item { font-size: 11px; padding: 5px 0; border-bottom: 1px dotted #ccc; }
+                        .footer { text-align: center; margin-top: 20px; font-size: 10px; }
+                        .sensors { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+                        .sensors h4 { margin: 0 0 10px 0; font-size: 12px; }
+                        .sensor-row { display: flex; justify-content: space-between; font-size: 11px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>🤖 إيصال التحكم بالروبوت</h2>
+                        <p style="margin: 5px 0; font-size: 12px;">Robot Control Receipt</p>
+                    </div>
+                    <div class="info">
+                        <span>📅 التاريخ: ${date}</span>
+                        <span>⏰ الوقت: ${time}</span>
+                        <span>🌐 IP: ${robotIP}:${robotPort}</span>
+                        <span>📶 الحالة: ${isConnected ? 'متصل ✅' : 'غير متصل ❌'}</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="sensors">
+                        <h4>📊 قراءات المستشعرات الحالية:</h4>
+                        <div class="sensor-row"><span>🌡️ الحرارة:</span><span>${document.getElementById('temp-value').textContent}°C</span></div>
+                        <div class="sensor-row"><span>💧 الرطوبة:</span><span>${document.getElementById('humidity-value').textContent}%</span></div>
+                        <div class="sensor-row"><span>📏 المسافة:</span><span>${document.getElementById('distance-value').textContent} سم</span></div>
+                        <div class="sensor-row"><span>🔋 البطارية:</span><span>${document.getElementById('battery-value').textContent}%</span></div>
+                    </div>
+                    <div class="divider"></div>
+                    <h4 style="font-size: 12px;">📝 سجل الأوامر:</h4>
+            `;
+            
+            logs.forEach(log => {
+                const logTime = log.querySelector('.log-time').textContent;
+                const logMsg = log.querySelector('.log-message').textContent;
+                receiptContent += `<div class="log-item">${logTime} ${logMsg}</div>`;
+            });
+            
+            receiptContent += `
+                    <div class="divider"></div>
+                    <div class="footer">
+                        <p>═══════════════════════</p>
+                        <p>شكراً لاستخدام نظام التحكم</p>
+                        <p>Thank you!</p>
+                        <p>═══════════════════════</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(receiptContent);
+            printWindow.document.close();
+            printWindow.print();
+            addLog('تم إنشاء الإيصال للطباعة');
+        }
+
+        // بدء الاتصال التلقائي
+        addLog('مرحباً! اضغط على زر الاتصال للبدء.');
+    </script>
+</body>
+</html>
+
